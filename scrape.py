@@ -1,6 +1,5 @@
 import asyncio
 from playwright.async_api import async_playwright
-import re
 
 seeds = range(33, 43)
 
@@ -13,16 +12,25 @@ async def main():
         
         for seed in seeds:
             url = f"https://sanand0.github.io/tdsdata/js_table/?seed={seed}"
-            print(f"Processing {url}")
+            print("Processing:", url)
             
             await page.goto(url)
+            
+            # Wait for table fully loaded
             await page.wait_for_selector("table")
             
-            content = await page.content()
-            numbers = re.findall(r'-?\d+\.?\d*', content)
+            # Extract numbers from table cells
+            cells = await page.query_selector_all("td")
             
-            for num in numbers:
-                total += float(num)
+            for cell in cells:
+                text = await cell.inner_text()
+                text = text.strip()
+                
+                try:
+                    number = float(text)
+                    total += number
+                except:
+                    pass
         
         await browser.close()
     
